@@ -1,0 +1,92 @@
+<!-- graph.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Graph Traversal</title>
+  <style>
+     body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+      text-align: center;
+    }
+    h1 {
+      margin-top: 20px;
+    
+    }
+    canvas { border: 1px solid black; }
+  </style>
+</head>
+<body>
+  <h1>Graph Traversal (DFS & BFS)</h1>
+  <a href="index.html">Back to Home</a>
+  <br></br>
+  <button onclick="generateRandomGraph()">Generate Graph</button>
+  <button onclick="startDFS()">Start DFS</button>
+  <button onclick="startBFS()">Start BFS</button><br></br>
+  <canvas id="graphCanvas" width="800" height="600"></canvas>
+  <script>
+    let graph = {}, positions = {}, visited = {};
+    function generateRandomGraph() {
+      const canvas = document.getElementById('graphCanvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      graph = {}; visited = {}; positions = {};
+      for (let i = 0; i < 6; i++) {
+        positions[i] = { x: Math.random() * 700 + 50, y: Math.random() * 500 + 50 };
+        graph[i] = [];
+      }
+      for (let i = 0; i < 6; i++) {
+        for (let j = i + 1; j < 6; j++) {
+          if (Math.random() < 0.5) {
+            graph[i].push(j);
+            graph[j].push(i);
+          }
+        }
+      }
+      drawGraph();
+    }
+    function drawGraph() {
+      const ctx = document.getElementById('graphCanvas').getContext('2d');
+      ctx.clearRect(0, 0, 800, 600);
+      for (let node in graph) {
+        let { x, y } = positions[node];
+        graph[node].forEach(n => {
+          let nx = positions[n].x, ny = positions[n].y;
+          ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(nx, ny); ctx.stroke();
+        });
+      }
+      for (let i in positions) {
+        const { x, y } = positions[i];
+        ctx.beginPath(); ctx.arc(x, y, 20, 0, 2 * Math.PI); ctx.fillStyle = '#007bff'; ctx.fill();
+        ctx.fillStyle = 'white'; ctx.fillText(i, x - 5, y + 5);
+      }
+    }
+    async function dfs(node) {
+      if (visited[node]) return;
+      visited[node] = true;
+      highlight(node, 'red');
+      await sleep(500);
+      for (let n of graph[node]) await dfs(n);
+    }
+    async function startDFS() { visited = {}; await dfs(0); }
+    async function startBFS() {
+      visited = {}; let queue = [0]; visited[0] = true;
+      while (queue.length) {
+        let node = queue.shift(); highlight(node, 'green'); await sleep(500);
+        for (let n of graph[node]) {
+          if (!visited[n]) { visited[n] = true; queue.push(n); }
+        }
+      }
+    }
+    function highlight(i, color) {
+      const ctx = document.getElementById('graphCanvas').getContext('2d');
+      const { x, y } = positions[i];
+      ctx.beginPath(); ctx.arc(x, y, 20, 0, 2 * Math.PI); ctx.fillStyle = color; ctx.fill();
+      ctx.fillStyle = 'white'; ctx.fillText(i, x - 5, y + 5);
+    }
+    function sleep(ms) { return new Promise(res => setTimeout(res, ms)); }
+  </script>
+</body>
+</html>

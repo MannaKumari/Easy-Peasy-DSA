@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kruskal's Algorithm</title>
+  <style>
+     body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+      text-align: center;
+    }
+    h1 {
+      margin-top: 20px;
+    
+    }
+    canvas {
+      border: 1px solid black;
+    }
+
+  </style>
+</head>
+<body>
+  <h1>Kruskal's Algorithm Visualizer</h1>
+  <a href="index.html">Back to Home</a><br></br>
+  <button onclick="generateKruskalGraph()">Generate Graph</button>
+  <button onclick="runKruskal()">Run Kruskal</button><br></br>
+  <canvas id="kruskalCanvas" width="800" height="600"></canvas>
+
+  <script>
+    let nodes = [], edges = [], parent = [], positions = [];
+
+    function generateKruskalGraph() {
+      const canvas = document.getElementById('kruskalCanvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      nodes = Array.from({ length: 6 }, (_, i) => i);
+      edges = [];
+      positions = nodes.map(() => ({ x: Math.random() * 700 + 50, y: Math.random() * 500 + 50 }));
+
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          if (Math.random() < 0.6) {
+            const weight = Math.floor(Math.random() * 20 + 1);
+            edges.push({ from: i, to: j, weight });
+          }
+        }
+      }
+      drawGraph(edges);
+    }
+
+    function drawGraph(edgeList, highlightEdges = []) {
+      const canvas = document.getElementById('kruskalCanvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, 800, 600);
+
+      for (let edge of edgeList) {
+        const { from, to, weight } = edge;
+        const { x: x1, y: y1 } = positions[from];
+        const { x: x2, y: y2 } = positions[to];
+        ctx.beginPath();
+        ctx.strokeStyle = highlightEdges.includes(edge) ? 'red' : 'black';
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        const midX = (x1 + x2) / 2, midY = (y1 + y2) / 2;
+        ctx.fillStyle = 'black';
+        ctx.fillText(weight, midX, midY);
+      }
+
+      for (let i = 0; i < nodes.length; i++) {
+        const { x, y } = positions[i];
+        ctx.beginPath();
+        ctx.arc(x, y, 20, 0, 2 * Math.PI);
+        ctx.fillStyle = 'blue';
+        ctx.fill();
+        ctx.fillStyle = 'white';
+        ctx.fillText(i, x - 5, y + 5);
+      }
+    }
+
+    function find(u) {
+      if (parent[u] === u) return u;
+      return parent[u] = find(parent[u]);
+    }
+
+    function union(u, v) {
+      parent[find(u)] = find(v);
+    }
+
+    async function runKruskal() {
+      parent = nodes.map(n => n);
+      const mst = [];
+      const sortedEdges = [...edges].sort((a, b) => a.weight - b.weight);
+
+      for (let edge of sortedEdges) {
+        if (find(edge.from) !== find(edge.to)) {
+          union(edge.from, edge.to);
+          mst.push(edge);
+          drawGraph(edges, mst);
+          await sleep(700);
+        }
+      }
+    }
+
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+  </script>
+</body>
+</html>
